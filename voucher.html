@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Voucher San Valentín</title>
+  <style>
+    :root{
+      --bg1:#120014;
+      --bg2:#3a002f;
+      --ink:#fff;
+      --muted:#ffffffb3;
+      --accent:#ff4d8d;
+      --accent2:#ffb3d1;
+      --gold:#ffd27a;
+      --shadow: 0 20px 60px rgba(0,0,0,.45);
+      --radius: 22px;
+    }
+
+    *{box-sizing:border-box}
+    html{ -webkit-text-size-adjust: 100%; }
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue";
+      color:var(--ink);
+      overflow-x:hidden;
+      background:
+        radial-gradient(900px 500px at 20% 20%, #ff4d8d33, transparent 60%),
+        radial-gradient(700px 500px at 80% 10%, #ffd27a33, transparent 55%),
+        radial-gradient(900px 600px at 60% 80%, #7a1cff22, transparent 60%),
+        linear-gradient(145deg, var(--bg1), var(--bg2));
+    }
+
+    .wrap{
+      width:min(980px, 92vw);
+      margin: clamp(18px, 5vw, 46px) auto;
+      display:grid;
+      gap:18px;
+    }
+
+    header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:14px;
+    }
+    .title{ line-height:1.05; }
+    .title h1{
+      margin:0;
+      font-size: clamp(26px, 4.2vw, 46px);
+      letter-spacing:.2px;
+    }
+    .title p{
+      margin:10px 0 0;
+      color:var(--muted);
+      font-size: clamp(14px, 1.9vw, 16px);
+    }
+
+    .stage{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:18px;
+    }
+
+    .hearts{
+      position: fixed;
+      inset: 0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index:0;
+    }
+    .heart{
+      position:absolute;
+      width: 16px;
+      height: 16px;
+      transform: rotate(45deg);
+      opacity:.0;
+      filter: drop-shadow(0 10px 12px rgba(0,0,0,.2));
+      animation: floatUp linear infinite;
+    }
+    .heart::before, .heart::after{
+      content:"";
+      position:absolute;
+      width: 16px;
+      height: 16px;
+      border-radius:50%;
+      background: var(--accent);
+    }
+    .heart{ background: var(--accent); }
+    .heart::before{ left:-8px; top:0;}
+    .heart::after{ left:0; top:-8px;}
+
+    @keyframes floatUp{
+      0%{ transform: translateY(16px) translateX(0) rotate(45deg) scale(.85); opacity:0;}
+      12%{opacity:.65}
+      60%{opacity:.55}
+      100%{ transform: translateY(-120vh) translateX(var(--drift)) rotate(45deg) scale(1.15); opacity:0;}
+    }
+
+    .card{
+      position:relative;
+      z-index:1;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, #ffffff14, #ffffff0a);
+      border: 1px solid #ffffff1f;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    .envelopeArea{
+      min-height: calc(100vh - 140px);
+      min-height: calc(100svh - 140px);
+      min-height: calc(100dvh - 140px);
+      display:grid;
+      place-items:center;
+      padding: 22px 18px;
+      background:
+        radial-gradient(500px 320px at 25% 20%, #ff4d8d24, transparent 70%),
+        radial-gradient(520px 340px at 90% 0%, #ffd27a1f, transparent 70%),
+        linear-gradient(180deg, #ffffff0d, transparent);
+      transition: opacity 380ms ease, transform 380ms ease;
+    }
+
+    .envelope{
+      width: 300px;
+      aspect-ratio: 16 / 10;
+      position:relative;
+      perspective: 1200px;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .envBody{
+      position:absolute;
+      inset:0;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #fff0f6, #ffd9ea);
+      box-shadow: 0 25px 55px rgba(0,0,0,.35);
+      overflow: visible; /* CLAVE: que no corte la carta */
+      border: 1px solid #ffffffaa;
+    }
+    .envBody::after{
+      content:"";
+      position:absolute;
+      inset:-60px -60px auto -60px;
+      height: 160px;
+      background: radial-gradient(closest-side, #ffffffcc, transparent 70%);
+      transform: rotate(-12deg);
+      opacity:.55;
+    }
+
+    .flap{
+      position:absolute;
+      inset: 0;
+      transform-origin: top center;
+      transform: rotateX(0deg);
+      transition: transform 900ms cubic-bezier(.2,.9,.2,1);
+      pointer-events:none;
+    }
+    .flap::before{
+      content:"";
+      position:absolute;
+      left:0; right:0; top:0;
+      height: 62%;
+      background: linear-gradient(180deg, #ffd1e3, #ffc1da);
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+      border-bottom: 1px solid #ffffffaa;
+    }
+
+    /* CARTA: SALE MÁS para que se vea completo "Para: Mi amor" */
+    .letter{
+      position:absolute;
+      left: 8%;
+      right: 8%;
+      bottom: 8%;
+      height: 78%;
+      background: linear-gradient(180deg, #fff, #fff6fb);
+      border-radius: 14px;
+      box-shadow: 0 20px 40px rgba(0,0,0,.25);
+      transform: translateY(-8%);  /* NEGATIVO para que SALGA del sobre */
+      transition: transform 900ms cubic-bezier(.2,.9,.2,1);
+      border: 1px solid #00000010;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .letterTop{
+      padding: 90px 14px 10px;
+      display:flex;
+      /* justify-content:space-between; */
+      align-items:baseline;
+      gap:10px;
+      background: linear-gradient(180deg, #ffffff, #fff6fb);
+      flex-shrink: 0;
+    }
+    .letterTop strong{
+      font-size: 14px;
+      color:#3b0018;
+    }
+
+    .seal{
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display:grid;
+      place-items:center;
+      background: radial-gradient(circle at 30% 30%, #ff86b3, #ff3f86);
+      color:white;
+      font-size: 18px;
+      box-shadow: 0 10px 20px rgba(255,77,141,.35);
+      border: 1px solid #ffffff66;
+      animation: pulse 1.35s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse{
+      0%,100%{ transform: scale(1); }
+      50%{ transform: scale(1.08); }
+    }
+
+    .letterBody{
+      padding: 6px 14px 12px;
+      color:#350015;
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    .letterBody h2{
+      margin:0 0 8px;
+      font-size: 16px;
+      color:#3b0018;
+      line-height: 1.3;
+    }
+    .letterBody p{
+      margin: 6px 0 0;
+      line-height: 1.4;
+      color:#4a0a24;
+      font-size: 13px;
+    }
+
+    /* Al abrir: sube más */
+    .open .flap{ transform: rotateX(165deg); }
+    .open .letter{ transform: translateY(-18%); }
+
+    .envBtnRow{
+      margin-top: 14px;
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+
+    button{
+      appearance:none;
+      border:0;
+      padding: 12px 14px;
+      border-radius: 14px;
+      cursor:pointer;
+      font-weight: 650;
+      letter-spacing:.2px;
+      touch-action: manipulation;
+    }
+    .primary{
+      background: linear-gradient(135deg, var(--accent), #ff2f6f);
+      color:white;
+      box-shadow: 0 16px 30px rgba(255,47,111,.25);
+    }
+    .ghost{
+      background: #ffffff10;
+      color: var(--accent2);
+      border: 1px solid #ffffff24;
+    }
+
+    .voucherHeader{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      padding: 18px;
+      background: linear-gradient(180deg, #ffffff12, transparent);
+      border-bottom: 1px solid #ffffff1a;
+    }
+    .voucherHeader h2{
+      margin:0;
+      font-size: 18px;
+      letter-spacing:.2px;
+    }
+    .voucherHeader p{
+      margin:8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height:1.35;
+    }
+
+    .voucherBody{
+      padding: 18px;
+      display:grid;
+      gap:12px;
+    }
+
+    .ticket{
+      background: linear-gradient(180deg, #0f0016aa, #0b0011aa);
+      border: 1px dashed #ffffff45;
+      border-radius: 18px;
+      padding: 14px;
+      position:relative;
+      overflow:hidden;
+    }
+    .ticket::before{
+      content:"";
+      position:absolute;
+      inset: -120px -120px auto -120px;
+      height: 240px;
+      background: radial-gradient(closest-side, #ff4d8d30, transparent 72%);
+      transform: rotate(10deg);
+    }
+
+    .grid{
+      position:relative;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 520px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .field{
+      padding: 10px 12px;
+      background: #ffffff10;
+      border: 1px solid #ffffff1c;
+      border-radius: 14px;
+    }
+    .k{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom:4px;
+    }
+    .v{
+      display:block;
+      font-size: 14px;
+      color: #fff;
+      font-weight: 650;
+      overflow-wrap:anywhere;
+    }
+
+    .big{
+      grid-column: 1 / -1;
+      padding: 12px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #ffffff12, #ffffff08);
+      border: 1px solid #ffffff1f;
+      position:relative;
+    }
+    .big .v{ font-size: 16px; }
+    .spark{
+      position:absolute;
+      right:12px; top:12px;
+      color: var(--gold);
+      font-size: 12px;
+      opacity:.9;
+    }
+
+    #voucherCard{
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(14px);
+      transition: opacity 520ms ease, transform 520ms ease, visibility 0s linear 520ms;
+      pointer-events: none;
+    }
+    body.show-voucher #voucherCard{
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      transition: opacity 520ms ease, transform 520ms ease, visibility 0s linear 0s;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="hearts" id="hearts"></div>
+
+  <div class="wrap">
+    <div class="stage">
+      <section class="card envelopeArea">
+        <div>
+          <div class="envelope" id="envelope">
+            <div class="envBody"></div>
+            <div class="letter">
+              <div class="letterTop">
+                <strong>Para: Mi amor</strong>
+                <div class="seal">♥</div>
+              </div>
+            </div>
+            <div class="flap"></div>
+          </div>
+
+          <div class="envBtnRow">
+            <button class="primary" id="openBtn">Abrir el sobre</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="voucherCard">
+        <header>
+        <div class="title">
+            <h1>Voucher de San Valentín</h1>
+            <p>Un vale digital hecho con amor… canjeable por un zapato, un abrazo largo y muchos besos.</p>
+        </div>
+        </header>
+        <div class="voucherHeader">
+          <div>
+            <h2>Vale por 1 zapato</h2>
+            <p>Canjeable cuando quieras, válido para una salida juntos a elegirlo.</p>
+          </div>
+        </div>
+
+        <div class="voucherBody">
+          <div class="ticket">
+            <div class="grid">
+              <div class="field">
+                <span class="k">Beneficiaria</span>
+                <span class="v" id="vName">Mi esposa hermosa Estéfani</span>
+              </div>
+              <div class="field">
+                <span class="k">Regalo</span>
+                <span class="v">1 zapato (a elección)</span>
+              </div>
+              <div class="field">
+                <span class="k">Talla / número</span>
+                <span class="v" id="vSize">—</span>
+              </div>
+              <div class="field">
+                <span class="k">Color</span>
+                <span class="v" id="vColor">—</span>
+              </div>
+              <div class="big">
+                <span class="spark">Edición limitada</span>
+                <span class="k">Mensaje</span>
+                <span class="v">"Elegimos el zapato juntos, y después merienda/cena conmigo."</span>
+              </div>
+              <div class="field">
+                <span class="k">Válido desde</span>
+                <span class="v" id="vDateFrom">14/02/2026</span>
+              </div>
+              <div class="field">
+                <span class="k">Código</span>
+                <span class="v">LOVE-0001</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const hearts = document.getElementById('hearts');
+    const heartCount = 22;
+    function rand(min, max){ return Math.random()*(max-min)+min; }
+    for(let i=0;i<heartCount;i++){
+      const h = document.createElement('div');
+      h.className = 'heart';
+      h.style.left = rand(0, 100) + "vw";
+      h.style.bottom = rand(-20, 0) + "vh";
+      const size = rand(10, 22);
+      h.style.width = size + "px";
+      h.style.height = size + "px";
+      h.style.setProperty('--drift', rand(-60, 60).toFixed(0) + "px");
+      h.style.animationDuration = rand(9, 18) + "s";
+      h.style.animationDelay = rand(-18, 0) + "s";
+      h.style.filter = "drop-shadow(0 10px 12px rgba(0,0,0,.2)) hue-rotate("+rand(-10, 25)+"deg)";
+      hearts.appendChild(h);
+    }
+
+    const now = new Date();
+    const today = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+    document.getElementById('vDateFrom').textContent = today;
+
+    const envelope = document.getElementById('envelope');
+    const openBtn = document.getElementById('openBtn');
+    const voucherCard = document.getElementById('voucherCard');
+    let opened = false;
+
+    openBtn.addEventListener('click', () => {
+      if (document.body.classList.contains('show-voucher')) {
+        document.body.classList.remove('show-voucher');
+        envelope.classList.remove('open');
+        openBtn.textContent = "Abrir el sobre";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        opened = false;
+      } else {
+        envelope.classList.add('open');
+        opened = true;
+        setTimeout(() => {
+          document.body.classList.add('show-voucher');
+          openBtn.textContent = "Ocultar voucher";
+          voucherCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 650);
+      }
+    });
+
+    envelope.addEventListener('click', () => {
+      if (document.body.classList.contains('show-voucher')) return;
+      envelope.classList.toggle('open');
+      opened = !opened;
+    });
+
+    const copyBtn = document.getElementById('copyBtn');
+    copyBtn.addEventListener('click', async ()=>{
+      const text = `VOUCHER SAN VALENTÍN\nBeneficiaria: ${document.getElementById('vName').textContent}\nRegalo: 1 zapato (a elección)\nVálido desde: ${today}\nCódigo: LOVE-0001\n\nCon amor: Aurelio`;
+      try{
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = "Copiado";
+        setTimeout(()=> copyBtn.textContent="Copiar", 1100);
+      }catch(e){
+        alert("No se pudo copiar.");
+      }
+    });
+  </script>
+</body>
+</html>
